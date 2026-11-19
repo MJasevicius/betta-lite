@@ -8,8 +8,11 @@
 set -e
 cd "$(dirname "$0")"
 
-swift build -c release
-BIN="$(swift build -c release --show-bin-path)/BettaLite"
+# UNIVERSAL=1: for Apple silicon and Intel both; INSTALL=0: only build it, into dist/
+ARCHS=()
+[[ -n "$UNIVERSAL" ]] && ARCHS=(--arch arm64 --arch x86_64)
+swift build -c release $ARCHS
+BIN="$(swift build -c release $ARCHS --show-bin-path)/BettaLite"
 NAME="Betta Lite"
 APP="dist/$NAME.app"
 
@@ -46,6 +49,8 @@ cat > "$APP/Contents/Info.plist" <<EOF
 EOF
 
 codesign --force --sign - "$APP" 2>/dev/null
+
+[[ "$INSTALL" == 0 ]] && { echo "Built $APP"; exit 0; }
 
 mkdir -p ~/Applications
 rm -rf ~/Applications/"$NAME.app"

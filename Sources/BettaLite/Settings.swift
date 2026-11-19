@@ -19,7 +19,8 @@ enum Reaction: Int { case ignore, curious, shy }
 
 final class Settings {
     static let shared = Settings()
-    private let store = UserDefaults(suiteName: "io.github.mjasevicius.betta-lite") ?? .standard
+    /// the app's own defaults; the tools (and the screen saver) name them
+    private let store: UserDefaults = Bundle.main.bundleIdentifier == "io.github.mjasevicius.betta-lite" ? .standard : UserDefaults(suiteName: "io.github.mjasevicius.betta-lite") ?? .standard
     var onChange: ((String) -> Void)?                // told which setting changed
 
     private func get<T>(_ key: String, _ fallback: T) -> T { store.object(forKey: key) as? T ?? fallback }

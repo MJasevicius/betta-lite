@@ -9,7 +9,30 @@ choices each. Its big sibling, [Betta Aquarium](https://github.com/MJasevicius/b
 names, personalities, moods, memory, growing up, environments, weather, a screen saver and a full
 settings window.
 
-## Install
+![The fish drawing itself](media/drawing.gif)
+
+**▶ [Watch the demo](https://github.com/MJasevicius/betta-lite/releases/latest/download/betta-lite-demo.mp4)**
+(40 seconds: it draws itself, swims, is fed, and the glass is tapped)
+
+| Three fish in the tank | The light at sunrise |
+|---|---|
+| ![Three fish](media/tank.png) | ![Sunrise](media/dawn.png) |
+
+## Download
+
+Get **betta-lite-macos.zip** from the [latest release](https://github.com/MJasevicius/betta-lite/releases/latest),
+unzip it, and move **Betta Lite.app** to Applications. It runs on Apple silicon and Intel Macs with macOS
+14 or later.
+
+It isn't notarized by Apple (that takes a paid developer account), so the first time, macOS won't
+open it. Either try to open it once, then go to **System Settings ▸ Privacy & Security** and click
+**Open Anyway**; or, in Terminal:
+
+```
+xattr -dr com.apple.quarantine "/Applications/Betta Lite.app"
+```
+
+## Build it yourself
 
 ```
 git clone https://github.com/MJasevicius/betta-lite
@@ -84,6 +107,10 @@ $B --snap 300,900 --out DIR [--fish 3 --seabed --surface --company --rays 1 --ca
 $B --path 10 [--fish 3 --feed --tap --hungry --night --surface]       # swim 10 minutes unseen: what did they do?
 $B --dump 2.5 FILE                           # raw 113 x 103 grid, for diffing with the Python
 $B --icon FILE                               # the app icon
+$B --video FILE --seconds 40 [as --snap]      # an MP4 of the tank (--from S to start later, --width W)
+$B --gif FILE --seconds 8 --fps 15 [as --snap] # an animated GIF
+tools/make-media.sh                          # the README's pictures (media/) and the demo video (dist/)
+tools/release.sh                             # the app for Apple silicon and Intel, zipped for a release (dist/)
 python tools/compare.py                      # the first seconds against the Python, cell for cell*
 ```
 

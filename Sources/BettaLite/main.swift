@@ -200,8 +200,8 @@ func save(_ image: CGImage, _ path: String) {
     try! NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: path))
 }
 
-func snap(_ frames: Set<Int>, _ dir: String, scale: Int) {
-    try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
+/// the tank, how it is drawn, and what happens in it, as the tools' options say
+func toolScene() -> (Tank, (Renderer) -> Void, (Int) -> Void) {
     // --seabed, --surface, --company, --vignette as in the menu; --rays K, --caustics K, --dawn K, --night K;
     // --feed N drops pellets at frame N, --tap N taps the glass near the first fish at frame N
     let tank = toolTank()
@@ -210,17 +210,25 @@ func snap(_ frames: Set<Int>, _ dir: String, scale: Int) {
     mood.night = Double(arg("--night") ?? "0") ?? 0
     tank.surroundings.mood = mood
     let feedAt = arg("--feed").flatMap(Int.init), tapAt = arg("--tap").flatMap(Int.init)
-    let screens = Array(0..<tank.layout.screens.count)
-    render(tank, frames: frames, scale: scale, screens: screens, setup: { r in
+    let setup: (Renderer) -> Void = { r in
         r.rays = Float(arg("--rays") ?? "0") ?? 0
         r.caustics = Float(arg("--caustics") ?? "0") ?? 0
         r.dawn = Float(arg("--dawn") ?? "0") ?? 0
         r.brightness = Float(1 - 0.45 * mood.night)
         r.vignette = flag("--vignette")
-    }, before: { n in
+    }
+    let before: (Int) -> Void = { n in
         if n == feedAt { tank.feed() }
         if n == tapAt, let b = tank.bettas.first { tank.tap(at: b.anchor + P2(0.6, 0.2), screen: 0) }
-    }) { n, i, image in
+    }
+    return (tank, setup, before)
+}
+
+func snap(_ frames: Set<Int>, _ dir: String, scale: Int) {
+    try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
+    let (tank, setup, before) = toolScene()
+    let screens = Array(0..<tank.layout.screens.count)
+    render(tank, frames: frames, scale: scale, screens: screens, setup: setup, before: before) { n, i, image in
         let name = screens.count > 1 ? String(format: "swift_%05d_s%d.png", n, i) : String(format: "swift_%05d.png", n)
         let path = URL(fileURLWithPath: dir).appendingPathComponent(name).path
         save(image, path)
@@ -264,6 +272,11 @@ if args.contains("--bench") {
     path(Double(m) ?? 5)
 } else if let t = arg("--dump"), let i = args.firstIndex(of: "--dump"), i + 2 < args.count {
     dump(Time(t)!, args[i + 2])
+} else if let file = arg("--video") {
+    film(file, from: Double(arg("--from") ?? "0") ?? 0, seconds: Double(arg("--seconds") ?? "20") ?? 20, width: Int(arg("--width") ?? "1280") ?? 1280)
+} else if let file = arg("--gif") {
+    gif(file, from: Double(arg("--from") ?? "0") ?? 0, seconds: Double(arg("--seconds") ?? "8") ?? 8, fps: Int(arg("--fps") ?? "15") ?? 15,
+        width: Int(arg("--width") ?? "640") ?? 640)
 } else if let list = arg("--snap") {
     snap(Set(list.split(separator: ",").compactMap { Int($0) }), arg("--out") ?? "snaps", scale: Int(arg("--scale") ?? "1") ?? 1)
 } else if let file = arg("--icon") {
