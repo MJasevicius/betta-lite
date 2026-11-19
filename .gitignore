@@ -1,0 +1,7 @@
+# built by swift build and make-app.sh
+.build/
+dist/
+.swiftpm/
+*.xcodeproj/
+xcuserdata/
+.DS_Store
